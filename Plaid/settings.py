@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nnu)@mf)qngw3r7-z@jx%$vkmhb$m0fh)$5^(*u7hojuph93o1'
+SECRET_KEY = 'django-insecure-c-22*083+-ms11%5d#793f8@y@#n$2komy*2t6%(3rwrfy012*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,17 +31,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
+    'knox',
+    'finance',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'finance_app.apps.FinanceAppConfig',
-    'users.apps.UsersConfig',
-    'rest_framework',
-    'knox',
-    'finance_app',
 ]
 
 MIDDLEWARE = [
@@ -121,12 +119,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.TokenAuthentication',
-        'knox.auth.TokenAuthentication',
-    )
+
+REST_FRAMEWORK={
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+    # 'rest_framework.authentication.BasicAuthentication',
+    # 'rest_framework.authentication.SessionAuthentication',
+    'knox.auth.TokenAuthentication',
+    ]
 }
 
 # Default primary key field type
