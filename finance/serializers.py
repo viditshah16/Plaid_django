@@ -1,15 +1,20 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from django.contrib.auth.models import User
 
-from .models import Transaction, Account, Item
-
-class AccountSerializer(serializers.ModelSerializer):
+# User Serializer
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Account
-        fields = ['item', 'account_id','available_balance', 'current_balace', 'name', 'account_type', 'account_subtype']
+        model=User  
+        fields=('id','username','email')
 
-
-class TransactionSerializer(serializers.ModelSerializer):
+# Register Serializer
+class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transaction
-        fields = ['account', 'transaction_id' ,'amount', 'date', 'name', 'payment_channel']
+        model=User
+        fields=('id','username','email','password')
+        extra_kwargs={'password':{'write_only':True}}
+
+    def create(self,validated_data):
+        user=User.objects.create_user(validated_data['username'],validated_data['email'],validated_data['password'])
+
+        return user
