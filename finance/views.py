@@ -63,3 +63,123 @@ class AccessTokenCreate(APIView):
             "item_id": item_id
         }
         return Response(data, status=status.HTTP_201_CREATED)
+
+
+class TransactionsGet(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        item = Item.objects.filter(user=self.request.user)
+        access_token = item[0].access_token
+
+        start_dt = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        end_dt = datetime.now().strftime("%Y-%m-%d")
+
+        response = client.Transactions.get(access_token, start_date=start_dt, end_date=end_dt)
+        transactions = response['transactions']
+
+        for trans in transactions:
+            trans['account_id'] = Account.objects.filter(account_id = trans['account_id'])[0].pk
+
+        serializer = TransactionSerializer(data=transactions, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TransactionsGetDB(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        item = Item.objects.filter(user=self.request.user)
+        
+        accounts =  Account.objects.filter(item=item[0].pk)
+
+        account_id_list = []
+        for acc in accounts:
+            account_id_list.append(acc.pk)
+
+        print("account_id_list", account_id_list)
+
+        transactions = Transaction.objects.filter(account__in=account_id_list)
+        transactions = list(transactions.values())
+
+        # serializer = TransactionSerializer(data=transactions, many=True)
+        # serializer.is_valid(raise_exception=True)
+
+        return Response(transactions, status=status.HTTP_200_OK)
+
+
+class AccountBalance(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        item = Item.objects.filter(user=self.request.user)
+        access_token = item[0].access_token
+
+        # Pull real-time balance information for each account associated with the Item
+        response = client.Accounts.balance.get(access_token)
+
+        accounts = clean_accounts_data(item[0].pk, response['accounts'])
+        
+        serializer = AccountSerializer(data=accounts, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AccountBalanceDB(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        item = Item.objects.filter(user=self.request.user)
+
+        accounts =  Account.objects.filter(item_id=item[0].pk)
+        accounts = list(accounts.values())
+        
+        # serializer = AccountSerializer(data=list(accounts.values()), many=True)
+        # serializer.is_valid(raise_exception=True)
+
+        return Response(accounts, status=status.HTTP_200_OK)
+
+
+class WebhookTransactions(APIView):
+    def post(self, request):
+        data = request.data
+
+        webhook_type = data['webhook_type']
+        webhook_code = data['webhook_code']
+
+        print(f"{webhook_type} Webhook received. Type {webhook_code}")
+
+        if webhook_type == "TRANSACTIONS":
+            item_id = data['item_id']
+            if webhook_code == "TRANSACTIONS_REMOVED":
+                removed_transactions = data['removed_transactions']
+                delete_transactions_from_db.delay(item_id, removed_transactions)
+            else:
+                new_transactions = data['new_transactions']
+                print("New transaction: ", new_transactions)
+
+                if new_transactions == 0: new_transactions=20
+                save_transactions_to_db.delay(item_id, new_transactions)
+                # save_transactions_to_db(item_id, new_transactions)
+        
+        return HttpResponse("Webhook received", status=status.HTTP_202_ACCEPTED)
+
+
+class WebhookTest(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        item = Item.objects.filter(user=self.request.user)
+        access_token = item[0].access_token
+
+        # fire a DEFAULT_UPDATE webhook for an item
+        res = client.Sandbox.item.fire_webhook(access_token, 'DEFAULT_UPDATE')
+
+        print("Webhook fired: ", res['webhook_fired'])
+
+        return Response({"message": "Webhook fired"}, status=status.HTTP_200_OK)
