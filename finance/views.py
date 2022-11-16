@@ -1,34 +1,65 @@
-from rest_framework import generics,permissions
+from django.http import HttpResponse
 from rest_framework.response import Response
-from knox.models import AuthToken
-# from knox.models import AuthToken
-from .serializers import UserSerializer, RegisterSerializer
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
+from datetime import timedelta
 
-# Register API
-class RegisterAPI(generics.GenericAPIView):
-    serializer_class=RegisterSerializer
+from .models import Item, Transaction, Account
+from .serializers import TransactionSerializer, AccountSerializer
+from .pclient import Pclient
+# from .utils import clean_accounts_data
+# from .tasks import save_transactions_to_db, delete_transactions_from_db
+from Plaid.settings import NGROK_ID
 
-    def post(self,request,*args,**kwargs):
-        serializer=self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user= serializer.save()
-        return Response({
-        "user":UserSerializer(user,context=self.get_serializer_context()).data,
-        "token":AuthToken.objects.create(user)[1]
-        })
+client = Pclient.getInstance()
 
-from django.contrib.auth import login
+def home(request):
+    return HttpResponse('<h1>Finance app on Django rest framework using plaid apis</h2>')
 
-from rest_framework import permissions
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-from knox.views import LoginView as KnoxLoginView
 
-class LoginAPI(KnoxLoginView):
-    permission_classes=(permissions.AllowAny,)
+class PublicTokenCreate(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # institution_id = ins_109512
+        institution_id = request.data['institution_id']
 
-    def post(self,request,format=None):
-        serializer=AuthTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user=serializer.validated_data['user']
-        login(request,user)
-        return super(LoginAPI, self).post(request, format=None)
+        res = client.Sandbox.public_token.create(
+            institution_id=institution_id,
+            initial_products=['transactions'],
+            webhook="http://" + NGROK_ID + ".ngrok.io/webhook_transactions/"
+        )
+        
+        public_token = res['public_token']
+        print(public_token)
+        
+        data = {
+            "public_token": public_token
+        }
+        return Response(data, status=status.HTTP_201_CREATED)
+
+
+class AccessTokenCreate(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        global access_token, item_id
+        public_token = request.data['public_token']
+
+        response = client.Item.public_token.exchange(public_token)
+        access_token = response['access_token']
+        item_id = response['item_id']
+        print(access_token, item_id)
+        
+        item = Item.objects.create(user=self.request.user, item_id=item_id, access_token=access_token)
+        item.save()
+
+        # save_transactions_to_db.delay(item_id, 50)
+
+        data = {
+            "access_token": access_token,
+            "item_id": item_id
+        }
+        return Response(data, status=status.HTTP_201_CREATED)
