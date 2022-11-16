@@ -9,8 +9,8 @@ from datetime import timedelta
 from .models import Item, Transaction, Account
 from .serializers import TransactionSerializer, AccountSerializer
 from .pclient import Pclient
-# from .utils import clean_accounts_data
-# from .tasks import save_transactions_to_db, delete_transactions_from_db
+from .utils import clean_accounts_data
+from .tasks import save_transactions_to_db, delete_transactions_from_db
 from Plaid.settings import NGROK_ID
 
 client = Pclient.getInstance()
