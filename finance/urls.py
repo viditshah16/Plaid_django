@@ -13,18 +13,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from .views import RegisterAPI, LoginAPI
-from django.urls import path, include
-from django.contrib import admin
-# from .views import LoginAPI
-from knox import views as knox_views
+from django.urls import path
+from . import views
 
-
-urlpatterns=[
-    path('admin/', admin.site.urls),
-    path('api/register/',RegisterAPI.as_view(),name='register'),
-    path('api/login/', LoginAPI.as_view(), name='login'),
-    path('api/logout/',knox_views.LogoutView.as_view(),name='logout'),
-    path('api/logoutall/', knox_views.LogoutAllView.as_view()),
-    path('', include('finance_app.urls'))
+urlpatterns = [
+    path('', views.home, name='plaid-home'),
+    
+    path('get_access_token/', views.AccessTokenCreate.as_view()),
+    path('get_public_token/', views.PublicTokenCreate.as_view()),
+    path('get_transactions/', views.TransactionsGet.as_view()),
+    path('get_transactions_from_db/', views.TransactionsGetDB.as_view()),
+    path('get_account_balance/', views.AccountBalance.as_view()),
+    path('get_account_balance_from_db/', views.AccountBalanceDB.as_view()),
+    
+    path('webhook_test/', views.WebhookTest.as_view()),
+    path('webhook_transactions/', views.WebhookTransactions.as_view())
 ]

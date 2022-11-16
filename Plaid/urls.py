@@ -16,8 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from knox import views as knox_views
+from users import views as user_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',include('finance.urls')),
+    path('api/register/', user_views.UserRegisterAPIView.as_view()),
+    path('api/login/', user_views.UserLoginAPIView.as_view()),
+    path('api/logout/', user_views.UserLogoutAPIView.as_view()),
+    path('api/logoutall/', knox_views.LogoutAllView.as_view()),
+    path('', include('finance_app.urls'))
 ]
