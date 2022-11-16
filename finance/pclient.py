@@ -1,5 +1,6 @@
 from plaid import Client
 from Plaid.settings import PLAID_CLIENT_ID, PLAID_SECRET
+# from .views import PublicTokenCreate
 
 class Pclient:
     __instance = None
@@ -15,6 +16,7 @@ class Pclient:
             raise Exception("This class is a singleton!")
         else:
             Pclient.__instance = Client(
+                # public_key=PublicTokenCreate(),
                 client_id=PLAID_CLIENT_ID,
                 secret=PLAID_SECRET,
                 environment='sandbox'
