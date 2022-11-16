@@ -2,12 +2,11 @@
 
 Plaid​ is an account aggregation service where users can login with their bank credentials and plaid fetches last two years of transaction and account balance data for their bank account. This project is its implementation using Django.
 
-<br>
-- Item​ , a set of credentials (map of key value pairs) associated with a financial institution and a user.
+* Item​ , a set of credentials (map of key value pairs) associated with a financial institution and a user.
 - Users can have multiple Items for multiple financial institutions.
 - Each ​Item​ can have many associated accounts, which hold information such as balance, name, and account type
-<br>
-![plaid_model](https://user-images.githubusercontent.com/75966962/202279334-7f94676b-e460-42de-af0a-2fe727118bc5.jpg)
+
+<img src="https://user-images.githubusercontent.com/75966962/202279334-7f94676b-e460-42de-af0a-2fe727118bc5.jpg">
 
 ## Django rest Apis for signup, login and logout
 
