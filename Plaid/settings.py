@@ -21,6 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-c-22*083+-ms11%5d#793f8@y@#n$2komy*2t6%(3rwrfy012*'
+# SECRET_KEY = os.environ.get('PLAID_DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -32,8 +33,9 @@ ALLOWED_HOSTS = ['.ngrok.io', 'localhost']
 
 INSTALLED_APPS = [
     'rest_framework',
+    'users.apps.UsersConfig',
     'knox',
-    'finance',
+    'finance.apps.FinanceAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -131,7 +133,7 @@ REST_FRAMEWORK={
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
