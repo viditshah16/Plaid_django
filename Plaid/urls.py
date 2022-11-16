@@ -25,5 +25,5 @@ urlpatterns = [
     path('api/login/', user_views.UserLoginAPIView.as_view()),
     path('api/logout/', user_views.UserLogoutAPIView.as_view()),
     path('api/logoutall/', knox_views.LogoutAllView.as_view()),
-    path('', include('finance_app.urls'))
+    path('', include('finance.urls'))
 ]
