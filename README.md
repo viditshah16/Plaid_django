@@ -48,3 +48,10 @@ Start the rabbitmq server - `rabbitmq-server`
 Async tasks handled by celery - `celery -A plaid_django worker -l info`
 
 Localhost exposed using ngrox for webhooks - `./ngrox http 8000`
+
+## Run Server
+After setting up all the things you need to migrate the changes, create admin user and run the server:
+
+    $ python manage.py makemigrations
+    $ python manage.py migrate
+    $ python manage.py runserver
